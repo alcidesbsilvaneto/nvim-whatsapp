@@ -2,7 +2,7 @@ local Job = require("plenary.job")
 local baseUrl = "https://api.podeorganizar.com.br"
 
 -- Load token from storage
-local token = vim.fn.system("cat ~/.pode_token")
+local token = vim.fn.system("cat ~/.pode_token"):gsub("\n", "")
 
 local function get(endpoint, cb)
 	Job:new({
@@ -30,8 +30,7 @@ local function sendMessage(message, ticket_id, cb)
 			"POST",
 			baseUrl .. "/messages",
 			"-H",
-			"Authorization: Bearer " .. token,
-			"-H",
+			"Authorization: Bearer " .. token("-H"),
 			"Content-Type: application/json",
 			"-d",
 			'{"text": "' .. message .. '", "ticket_id": "' .. ticket_id .. '"}',
