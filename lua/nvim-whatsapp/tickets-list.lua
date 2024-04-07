@@ -5,6 +5,7 @@ local keymaps = require("nvim-whatsapp.keymaps")
 local chat = require("nvim-whatsapp.chat")
 
 local M = {}
+M.tickets = {}
 
 M.select_ticket = function()
 	-- Get the current line
@@ -13,6 +14,19 @@ M.select_ticket = function()
 	local ticketId = util.split(line, " - ")[1]
 	-- Initialize chat data
 	chat.load_chat(ticketId)
+
+	-- Clear highlights
+	vim.api.nvim_buf_clear_namespace(ui.nui_tickets_list_popup.bufnr, -1, 0, -1)
+
+	-- Apply highlight to current line (selected ticket)
+	vim.api.nvim_buf_add_highlight(
+		ui.nui_tickets_list_popup.bufnr,
+		-1,
+		"NvimWhatsappSelectedTicket",
+		vim.api.nvim_win_get_cursor(0)[1] - 1,
+		0,
+		#line
+	)
 end
 
 M.render = function(tickets)
@@ -27,6 +41,7 @@ M.setup = function()
 	keymaps.setup_tickets_list_keymaps()
 
 	api.get("/tickets?per_page=1000", function(response)
+		M.tickets = response.tickets
 		M.render(response.tickets)
 	end)
 end

@@ -7,6 +7,12 @@ M.setup = function()
 		"NvimWhatsappChatSenderName",
 		{ fg = "#b4befe", italic = true, bold = false, default = true }
 	)
+
+	vim.api.nvim_set_hl(
+		0,
+		"NvimWhatsappSelectedTicket",
+		{ fg = "#b4befe", italic = true, bold = false, default = true }
+	)
 end
 
 return M

@@ -44,6 +44,10 @@ M.setup_message_input_keymaps = function()
 		require("nvim-whatsapp.navigation").FocusChat()
 	end, { noremap = true, silent = true })
 
+	ui.nui_message_input:map("n", "<C-h>", function()
+		require("nvim-whatsapp.navigation").FocusTicketsList()
+	end, { noremap = true, silent = true })
+
 	ui.nui_message_input:map("n", "<C-j>", function() end, { noremap = true, silent = true })
 	ui.nui_message_input:map("n", "<C-l>", function() end, { noremap = true, silent = true })
 	ui.nui_message_input:map("i", "<CR>", function()
