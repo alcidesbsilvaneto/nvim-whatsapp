@@ -43,6 +43,7 @@ You can get the API key sending a POST http request with username and password t
 - Chats list
 - Chat messages
 - Send messages
+- Socket listening for new messages
 
 ## Keymaps
 
@@ -53,3 +54,13 @@ You can get the API key sending a POST http request with username and password t
 | `<C-l>` | Focus conversation buff |
 | `<C-k>` | Focus chats list buff   |
 | `<C-j>` | Focus chat input        |
+
+## TODO
+
+- [ ] Setup nodejs dependencies on plugin setup
+- [ ] Listen to tickets update and update tickets list
+- [ ] Notifications
+- [ ] Show unread messages count on tickets list
+- [ ] Mark as read
+- [ ] Search tickets using telescope
+- [ ] Open URLs with default browser

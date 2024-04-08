@@ -73,11 +73,9 @@ end
 
 M.send_message = function()
 	local message = vim.fn.join(vim.fn.getline(1, "$"), "\n")
+	vim.api.nvim_buf_set_lines(ui.nui_message_input.bufnr, 0, -1, false, {})
 	api.sendMessage(message, M.ticket_id, function()
 		-- Clear input buffer
-		vim.api.nvim_buf_set_lines(ui.nui_message_input.bufnr, 0, -1, false, {})
-		-- Reload chat
-		M.load_chat(M.ticket_id)
 	end)
 end
 
