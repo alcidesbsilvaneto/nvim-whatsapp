@@ -8,6 +8,10 @@ M.setup = function()
 		noremap = true,
 		silent = true,
 	})
+	-- vim.api.nvim_set_keymap("n", "q", ":lua require('nvim-whatsapp').Toggle()<CR>", {
+	-- 	noremap = true,
+	-- 	silent = true,
+	-- })
 end
 
 M.setup_tickets_list_keymaps = function()
@@ -21,6 +25,10 @@ M.setup_tickets_list_keymaps = function()
 		SelectTicket()
 	end, { noremap = true, silent = true })
 
+	ui.nui_tickets_list_popup:map("n", "q", function()
+		require("nvim-whatsapp.init").Toggle()
+	end, { noremap = true, silent = true })
+
 	-- Avoid navigating outside the layout
 	ui.nui_tickets_list_popup:map("n", "<C-j>", function() end, { noremap = true, silent = true })
 	ui.nui_tickets_list_popup:map("n", "<C-h>", function() end, { noremap = true, silent = true })
@@ -30,6 +38,10 @@ end
 M.setup_chat_keymaps = function()
 	ui.nui_chat_popup:map("n", "<C-h>", function()
 		require("nvim-whatsapp.navigation").FocusTicketsList()
+	end, { noremap = true, silent = true })
+
+	ui.nui_chat_popup:map("n", "q", function()
+		require("nvim-whatsapp.init").Toggle()
 	end, { noremap = true, silent = true })
 
 	ui.nui_chat_popup:map("n", "<C-l>", function() end, { noremap = true })
@@ -42,6 +54,10 @@ end
 M.setup_message_input_keymaps = function()
 	ui.nui_message_input:map("n", "<C-k>", function()
 		require("nvim-whatsapp.navigation").FocusChat()
+	end, { noremap = true, silent = true })
+
+	ui.nui_message_input:map("n", "q", function()
+		require("nvim-whatsapp.init").Toggle()
 	end, { noremap = true, silent = true })
 
 	ui.nui_message_input:map("n", "<C-h>", function()

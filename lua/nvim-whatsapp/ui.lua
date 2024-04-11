@@ -4,7 +4,7 @@ local Input = Popup:extend("NuiInput")
 
 local M = {}
 
-M.is_open = false
+M.mounted = false
 
 local nui_message_input = Input({
 	border = {

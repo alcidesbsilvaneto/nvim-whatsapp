@@ -16,7 +16,16 @@ M.setup = function()
 end
 
 M.Open = function()
-	ui.layout:mount()
+	if ui.mounted then
+		ui.layout:show()
+	else
+		ui.layout:mount()
+		ui.mounted = true
+	end
+end
+
+M.Toggle = function()
+	ui.layout:hide()
 end
 
 return M

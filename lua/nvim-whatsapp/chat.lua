@@ -6,6 +6,7 @@ local keymaps = require("nvim-whatsapp.keymaps")
 local M = {}
 
 M.ticket_id = nil
+M.messages = {}
 
 M.setup = function()
 	keymaps.setup_chat_keymaps()
@@ -114,6 +115,7 @@ end
 M.load_chat = function(ticket_id)
 	api.get("/messages?page=1&per_page=1000&ticket_id=" .. ticket_id, function(response)
 		M.ticket_id = ticket_id
+		M.messages = response.messages
 		M.render(response.messages)
 	end)
 end
