@@ -2,6 +2,7 @@ local ui = require("nvim-whatsapp.ui")
 local api = require("nvim-whatsapp.api")
 local navigation = require("nvim-whatsapp.navigation")
 local keymaps = require("nvim-whatsapp.keymaps")
+local NuiLine = require("nui.line")
 
 local M = {}
 
@@ -11,6 +12,12 @@ M.messages = {}
 M.setup = function()
 	keymaps.setup_chat_keymaps()
 	keymaps.setup_message_input_keymaps()
+
+	-- Set chat input buffer options
+	vim.api.nvim_set_option_value("buftype", "nofile", { buf = ui.nui_message_input.bufnr })
+	vim.api.nvim_set_option_value("filetype", "nvim-whatsapp", { buf = ui.nui_message_input.bufnr })
+	vim.api.nvim_set_option_value("swapfile", false, { buf = ui.nui_message_input.bufnr })
+	vim.api.nvim_set_option_value("buflisted", false, { buf = ui.nui_message_input.bufnr })
 end
 
 M.apply_highlights = function(lines)
@@ -43,35 +50,6 @@ M.unlock_buffer = function()
 	vim.api.nvim_set_option_value("readonly", false, { buf = ui.nui_chat_popup.bufnr })
 end
 
-M.assemble_chat_messages = function(messages)
-	local lines = {}
-
-	for _, message in ipairs(messages) do
-		local finalMessage = ""
-		if type(message.message) == "string" then
-			finalMessage = message.message
-		end
-
-		finalMessage = finalMessage:gsub("^(.-):", "")
-		finalMessage = finalMessage:gsub("^%*", "")
-		finalMessage = finalMessage:gsub("\n", "")
-
-		if message.is_mine then
-			finalMessage = "Você: " .. finalMessage
-		else
-			if message.sender_name then
-				finalMessage = message.sender_name .. ": " .. finalMessage
-			else
-				finalMessage = "Desconhecido: " .. finalMessage
-			end
-		end
-
-		table.insert(lines, finalMessage)
-	end
-
-	return lines
-end
-
 M.send_message = function()
 	local message = vim.fn.join(vim.fn.getline(1, "$"), "\n")
 	vim.api.nvim_buf_set_lines(ui.nui_message_input.bufnr, 0, -1, false, {})
@@ -80,43 +58,69 @@ M.send_message = function()
 	end)
 end
 
+M.build_nui_line = function(message)
+	local line = NuiLine()
+	local finalMessage = message.message:gsub("^(.-):", "")
+	finalMessage = finalMessage:gsub("^%*", "")
+	finalMessage = finalMessage:gsub("\n", "")
+
+	if message.is_mine then
+		line:append("Você: ", "NvimWhatsappChatSenderName")
+	else
+		if message.sender_name then
+			line:append(message.sender_name .. ": ", "NvimWhatsappChatSenderName")
+		else
+			line:append("Desconhecido: ", "NvimWhatsappChatSenderName")
+		end
+	end
+
+	line:append(finalMessage, "NvimWhatsappChatMessage")
+
+	return line
+end
+
 M.render = function(messages)
+	-- Unlock buffer
+	M.unlock_buffer()
+
+	-- Build lines from messages
+	for i, message in ipairs(messages) do
+		local line = M.build_nui_line(message)
+		line:render(ui.nui_chat_popup.bufnr, -1, i)
+	end
+
+	-- Scroll to the bottom without moving the cursor
+	vim.api.nvim_win_set_cursor(ui.nui_chat_popup.winid, { #messages, 0 })
+
+	-- Lock buffer
+	M.lock_buffer()
+end
+
+M.clear_chat = function()
 	-- Unlock buffer
 	M.unlock_buffer()
 
 	-- Clear buffer
 	vim.api.nvim_buf_set_lines(ui.nui_chat_popup.bufnr, 0, -1, false, {})
 
-	-- Build lines from messages
-	local lines = M.assemble_chat_messages(messages)
-
-	-- Add lines to buffer
-	vim.api.nvim_buf_set_lines(ui.nui_chat_popup.bufnr, 0, 1, false, lines)
-
-	-- Apply highlights
-	M.apply_highlights(lines)
-
-	-- Focus on chat window
-	vim.api.nvim_set_current_win(ui.nui_chat_popup.winid)
-
 	-- Lock buffer
 	M.lock_buffer()
-
-	-- Scroll to the bottom
-	vim.api.nvim_win_set_cursor(ui.nui_chat_popup.winid, { #lines, 0 })
-
-	-- Focus chat input
-	navigation.FocusMessageInput()
-
-	-- Enter insert mode
-	vim.cmd("startinsert!")
 end
 
 M.load_chat = function(ticket_id)
-	api.get("/messages?page=1&per_page=1000&ticket_id=" .. ticket_id, function(response)
-		M.ticket_id = ticket_id
-		M.messages = response.messages
-		M.render(response.messages)
+	vim.schedule(function()
+		-- Focus chat input
+		navigation.FocusMessageInput()
+		-- Enter insert mode
+		vim.cmd("startinsert!")
+
+		M.clear_chat()
+
+		api.get("/messages?page=1&per_page=1000&ticket_id=" .. ticket_id, function(response)
+			M.ticket_id = ticket_id
+			M.messages = response.messages
+			M.render(response.messages)
+		end)
 	end)
 end
 

@@ -3,9 +3,11 @@ local util = require("nvim-whatsapp.util")
 local ui = require("nvim-whatsapp.ui")
 local keymaps = require("nvim-whatsapp.keymaps")
 local chat = require("nvim-whatsapp.chat")
+local NuiLine = require("nui.line")
 
 local M = {}
 M.tickets = {}
+M.nui_lines = {}
 
 M.select_ticket = function()
 	-- Get the current line
@@ -15,26 +17,57 @@ M.select_ticket = function()
 	-- Initialize chat data
 	chat.load_chat(ticketId)
 
-	-- Clear highlights
-	vim.api.nvim_buf_clear_namespace(ui.nui_tickets_list_popup.bufnr, -1, 0, -1)
+	for i, ticket in ipairs(M.tickets) do
+		if tostring(ticket.id) == ticketId then
+			M.tickets[i].selected = true
+		else
+			M.tickets[i].selected = false
+		end
+	end
 
-	-- Apply highlight to current line (selected ticket)
-	vim.api.nvim_buf_add_highlight(
-		ui.nui_tickets_list_popup.bufnr,
-		-1,
-		"NvimWhatsappSelectedTicket",
-		vim.api.nvim_win_get_cursor(0)[1] - 1,
-		0,
-		#line
-	)
+	M.render(M.tickets)
+end
+
+M.build_nui_line = function(ticket, selected)
+	local line = NuiLine()
+	line:append(ticket.id .. " ", "NvimWhatsappTicketListItemId")
+	if selected then
+		line:append(ticket.contact.name, "NvimWhatsappSelectedTicket")
+	else
+		line:append(ticket.contact.name, "NvimWhatsappTicketListItemName")
+	end
+	if ticket.last_message then
+		line:append(" " .. ticket.last_message, "NvimWhatsappTicketListItemLastMessage")
+	end
+	return line
+end
+
+M.lock_buffer = function()
+	vim.api.nvim_set_option_value("modifiable", false, { buf = ui.nui_tickets_list_popup.bufnr })
+	vim.api.nvim_set_option_value("readonly", true, { buf = ui.nui_tickets_list_popup.bufnr })
+	vim.api.nvim_set_option_value("buftype", "nofile", { buf = ui.nui_tickets_list_popup.bufnr })
+end
+
+M.unlock_buffer = function()
+	vim.api.nvim_set_option_value("modifiable", true, { buf = ui.nui_tickets_list_popup.bufnr })
+	vim.api.nvim_set_option_value("readonly", false, { buf = ui.nui_tickets_list_popup.bufnr })
 end
 
 M.render = function(tickets)
+	M.unlock_buffer()
 	local lines = {}
 	for _, ticket in ipairs(tickets) do
-		table.insert(lines, ticket.id .. " - " .. ticket.contact.name)
+		local line = M.build_nui_line(ticket, ticket.selected)
+		table.insert(lines, line)
 	end
-	vim.api.nvim_buf_set_lines(ui.nui_tickets_list_popup.bufnr, 0, 1, false, lines)
+
+	M.nui_lines = lines
+
+	for i, line in ipairs(lines) do
+		line:render(ui.nui_tickets_list_popup.bufnr, -1, i)
+	end
+
+	M.lock_buffer()
 end
 
 M.setup = function()

@@ -7,6 +7,9 @@ local M = {}
 M.mounted = false
 
 local nui_message_input = Input({
+	buf_options = {
+		buftype = "nofile",
+	},
 	border = {
 		style = "single",
 		text = {
