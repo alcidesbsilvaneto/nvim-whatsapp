@@ -30,14 +30,17 @@ end
 
 M.build_nui_line = function(ticket, selected)
 	local line = NuiLine()
+	local contactName = ticket.contact.name:gsub("^(.-):", ""):gsub("^%*", ""):gsub("\n", "")
+	local lastMessage = ticket.last_message:gsub("^(.-):", ""):gsub("\n", ""):gsub("^%*", "")
+
 	line:append(ticket.id .. " ", "NvimWhatsappTicketListItemId")
 	if selected then
-		line:append(ticket.contact.name, "NvimWhatsappSelectedTicket")
+		line:append(contactName, "NvimWhatsappSelectedTicket")
 	else
-		line:append(ticket.contact.name, "NvimWhatsappTicketListItemName")
+		line:append(contactName, "NvimWhatsappTicketListItemName")
 	end
 	if ticket.last_message then
-		line:append(" " .. ticket.last_message, "NvimWhatsappTicketListItemLastMessage")
+		line:append(" " .. lastMessage, "NvimWhatsappTicketListItemLastMessage")
 	end
 	return line
 end
