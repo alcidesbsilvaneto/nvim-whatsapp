@@ -12,6 +12,12 @@ socket.on("connect", () => {
   console.log("connected");
 });
 
-socket.onAny((event) => {
-  console.log(event);
+socket.onAny((event, payload) => {
+  if (payload?.ticketId) {
+    console.log(`ticket:${payload.ticketId}:updated`);
+  } else if (event === "ticket:updated") {
+    console.log(event);
+  } else {
+    console.log("nothing");
+  }
 });
