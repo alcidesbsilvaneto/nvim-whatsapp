@@ -8,6 +8,7 @@ local NuiLine = require("nui.line")
 local M = {}
 M.tickets = {}
 M.nui_lines = {}
+M.selected_ticket_id = nil
 
 M.select_ticket = function()
 	-- Get the current line
@@ -19,6 +20,8 @@ M.select_ticket = function()
 
 	for i, ticket in ipairs(M.tickets) do
 		if tostring(ticket.id) == ticketId then
+			M.mark_ticket_as_read(ticketId)
+			M.selected_ticket_id = ticketId
 			M.tickets[i].selected = true
 		else
 			M.tickets[i].selected = false
@@ -34,7 +37,10 @@ M.build_nui_line = function(ticket, selected)
 	local lastMessage = ticket.last_message:gsub("^(.-):", ""):gsub("\n", ""):gsub("^%*", "")
 
 	line:append(ticket.id .. " ", "NvimWhatsappTicketListItemId")
-	if selected then
+	if ticket.unread_count > 0 then
+		line:append(tostring(ticket.unread_count) .. " ", "NvimWhatsappTicketListItemUnread")
+	end
+	if selected or M.selected_ticket_id == ticket.id then
 		line:append(contactName, "NvimWhatsappSelectedTicket")
 	else
 		line:append(contactName, "NvimWhatsappTicketListItemName")
@@ -60,6 +66,20 @@ M.render = function(tickets)
 	M.unlock_buffer()
 	local lines = {}
 	for _, ticket in ipairs(tickets) do
+		local existing_ticket = nil
+
+		for _, oldTicket in ipairs(M.tickets) do
+			if oldTicket.id == ticket.id then
+				existing_ticket = oldTicket
+				break
+			end
+		end
+
+		if existing_ticket and existing_ticket.selected then
+			ticket.selected = existing_ticket.selected
+			M.selected_ticket_id = existing_ticket.id
+		end
+
 		local line = M.build_nui_line(ticket, ticket.selected)
 		table.insert(lines, line)
 	end
@@ -73,12 +93,25 @@ M.render = function(tickets)
 	M.lock_buffer()
 end
 
+M.mark_ticket_as_read = function(ticketId)
+	for i, ticket in ipairs(M.tickets) do
+		if tostring(ticket.id) == ticketId then
+			if ticket.unread_count > 0 then
+				api.markAsRead(ticketId, function()
+					M.tickets[i].unread_count = 0
+				end)
+			end
+			M.tickets[i].unread_count = 0
+			M.render(M.tickets)
+		end
+	end
+end
+
 M.setup = function()
 	keymaps.setup_tickets_list_keymaps()
-
 	api.get("/tickets?per_page=1000", function(response)
-		M.tickets = response.tickets
 		M.render(response.tickets)
+		M.tickets = response.tickets
 	end)
 end
 

@@ -8,6 +8,7 @@ local socket = require("nvim-whatsapp.socket")
 local M = {}
 
 M.chats = {}
+M.notification = {}
 
 M.setup = function()
 	keymaps.setup()

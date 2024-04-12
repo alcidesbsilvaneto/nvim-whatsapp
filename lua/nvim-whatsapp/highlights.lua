@@ -25,6 +25,12 @@ M.setup = function()
 		"NvimWhatsappTicketListItemName",
 		{ fg = "#FFFFFF", italic = true, bold = false, default = true }
 	)
+
+	vim.api.nvim_set_hl(
+		0,
+		"NvimWhatsappTicketListItemUnread",
+		{ fg = "#25cf4d", italic = true, bold = false, default = true }
+	)
 end
 
 return M
