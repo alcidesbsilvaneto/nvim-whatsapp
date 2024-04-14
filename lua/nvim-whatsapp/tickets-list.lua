@@ -9,6 +9,7 @@ local M = {}
 M.tickets = {}
 M.nui_lines = {}
 M.selected_ticket_id = nil
+M.keymaps_setup = false
 
 M.select_ticket = function()
 	-- Get the current line
@@ -108,7 +109,10 @@ M.mark_ticket_as_read = function(ticketId)
 end
 
 M.setup = function()
-	keymaps.setup_tickets_list_keymaps()
+	if not M.keymaps_setup then
+		keymaps.setup_tickets_list_keymaps()
+		M.keymaps_setup = true
+	end
 	api.get("/tickets?per_page=1000", function(response)
 		M.render(response.tickets)
 		M.tickets = response.tickets

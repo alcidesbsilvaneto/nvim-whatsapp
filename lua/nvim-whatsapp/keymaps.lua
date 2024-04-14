@@ -1,4 +1,5 @@
 local ui = require("nvim-whatsapp.ui")
+local api = require("nvim-whatsapp.api")
 
 local M = {}
 
@@ -33,6 +34,13 @@ M.setup_tickets_list_keymaps = function()
 	ui.nui_tickets_list_popup:map("n", "<C-j>", function() end, { noremap = true, silent = true })
 	ui.nui_tickets_list_popup:map("n", "<C-h>", function() end, { noremap = true, silent = true })
 	ui.nui_tickets_list_popup:map("n", "<C-k>", function() end, { noremap = true, silent = true })
+
+	-- Set all tickets as read
+	ui.nui_tickets_list_popup:map("n", "<leader>mr", function()
+		api.markAllAsRead(function()
+			require("nvim-whatsapp.tickets-list").setup()
+		end)
+	end, { noremap = true, silent = true })
 end
 
 M.setup_chat_keymaps = function()

@@ -60,10 +60,29 @@ local function markAsRead(ticket_id, cb)
 	}):start()
 end
 
+local function markAllAsRead(cb)
+	Job:new({
+		command = "curl",
+		args = {
+			"-X",
+			"POST",
+			baseUrl .. "/tickets/mark_all_as_read",
+			"-H",
+			"Authorization: Bearer " .. token,
+			"-H",
+			"Content-Type: application/json",
+		},
+		on_exit = vim.schedule_wrap(function(response)
+			cb(vim.fn.json_decode(response._stdout_results[1]))
+		end),
+	}):start()
+end
+
 local M = {
 	get = get,
 	sendMessage = sendMessage,
 	markAsRead = markAsRead,
+	markAllAsRead = markAllAsRead,
 }
 
 return M

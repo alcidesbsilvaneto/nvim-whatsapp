@@ -114,9 +114,12 @@ M.load_chat = function(ticket_id)
 		-- Enter insert mode
 		vim.cmd("startinsert!")
 
-		M.clear_chat()
+		if not ticket_id == M.ticket_id then
+			M.clear_chat()
+		end
 
 		api.get("/messages?page=1&per_page=1000&ticket_id=" .. ticket_id, function(response)
+			M.clear_chat()
 			M.ticket_id = ticket_id
 			M.messages = response.messages
 			M.render(response.messages)
