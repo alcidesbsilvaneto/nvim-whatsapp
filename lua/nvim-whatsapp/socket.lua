@@ -1,6 +1,6 @@
 local Job = require("plenary.job")
 local token = vim.fn.system("cat ~/.pode_token"):gsub("\n", "")
-local chat = require("nvim-whatsapp.chat")
+local chat = require("nvim-whatsapp.chat.index")
 local tickets_list = require("nvim-whatsapp.tickets-list")
 
 local M = {}

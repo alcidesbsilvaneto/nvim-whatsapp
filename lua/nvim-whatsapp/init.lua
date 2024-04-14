@@ -2,13 +2,10 @@ local ui = require("nvim-whatsapp.ui")
 local keymaps = require("nvim-whatsapp.keymaps")
 local tickets_list = require("nvim-whatsapp.tickets-list")
 local highlights = require("nvim-whatsapp.highlights")
-local chat = require("nvim-whatsapp.chat")
+local chat = require("nvim-whatsapp.chat.index")
 local socket = require("nvim-whatsapp.socket")
 
 local M = {}
-
-M.chats = {}
-M.notification = {}
 
 M.setup = function()
 	keymaps.setup()

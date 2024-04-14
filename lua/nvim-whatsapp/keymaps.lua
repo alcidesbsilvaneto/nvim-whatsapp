@@ -9,10 +9,6 @@ M.setup = function()
 		noremap = true,
 		silent = true,
 	})
-	-- vim.api.nvim_set_keymap("n", "q", ":lua require('nvim-whatsapp').Toggle()<CR>", {
-	-- 	noremap = true,
-	-- 	silent = true,
-	-- })
 end
 
 M.setup_tickets_list_keymaps = function()

@@ -2,14 +2,11 @@ local api = require("nvim-whatsapp.api")
 local util = require("nvim-whatsapp.util")
 local ui = require("nvim-whatsapp.ui")
 local keymaps = require("nvim-whatsapp.keymaps")
-local chat = require("nvim-whatsapp.chat")
+local chat = require("nvim-whatsapp.chat.index")
 local NuiLine = require("nui.line")
+local data = require("nvim-whatsapp.data")
 
 local M = {}
-M.tickets = {}
-M.nui_lines = {}
-M.selected_ticket_id = nil
-M.keymaps_setup = false
 
 M.select_ticket = function()
 	-- Get the current line
@@ -19,17 +16,17 @@ M.select_ticket = function()
 	-- Initialize chat data
 	chat.load_chat(ticketId)
 
-	for i, ticket in ipairs(M.tickets) do
+	for i, ticket in ipairs(data.tickets) do
 		if tostring(ticket.id) == ticketId then
 			M.mark_ticket_as_read(ticketId)
-			M.selected_ticket_id = ticketId
-			M.tickets[i].selected = true
+			data.selected_ticket_id = ticketId
+			data.tickets[i].selected = true
 		else
-			M.tickets[i].selected = false
+			data.tickets[i].selected = false
 		end
 	end
 
-	M.render(M.tickets)
+	M.render(data.tickets)
 end
 
 M.build_nui_line = function(ticket, selected)
@@ -41,7 +38,7 @@ M.build_nui_line = function(ticket, selected)
 	if ticket.unread_count > 0 then
 		line:append(tostring(ticket.unread_count) .. " ", "NvimWhatsappTicketListItemUnread")
 	end
-	if selected or M.selected_ticket_id == ticket.id then
+	if selected or data.selected_ticket_id == ticket.id then
 		line:append(contactName, "NvimWhatsappSelectedTicket")
 	else
 		line:append(contactName, "NvimWhatsappTicketListItemName")
@@ -69,7 +66,7 @@ M.render = function(tickets)
 	for _, ticket in ipairs(tickets) do
 		local existing_ticket = nil
 
-		for _, oldTicket in ipairs(M.tickets) do
+		for _, oldTicket in ipairs(data.tickets) do
 			if oldTicket.id == ticket.id then
 				existing_ticket = oldTicket
 				break
@@ -78,14 +75,14 @@ M.render = function(tickets)
 
 		if existing_ticket and existing_ticket.selected then
 			ticket.selected = existing_ticket.selected
-			M.selected_ticket_id = existing_ticket.id
+			data.selected_ticket_id = existing_ticket.id
 		end
 
 		local line = M.build_nui_line(ticket, ticket.selected)
 		table.insert(lines, line)
 	end
 
-	M.nui_lines = lines
+	data.nui_lines = lines
 
 	for i, line in ipairs(lines) do
 		line:render(ui.nui_tickets_list_popup.bufnr, -1, i)
@@ -95,27 +92,27 @@ M.render = function(tickets)
 end
 
 M.mark_ticket_as_read = function(ticketId)
-	for i, ticket in ipairs(M.tickets) do
+	for i, ticket in ipairs(data.tickets) do
 		if tostring(ticket.id) == ticketId then
 			if ticket.unread_count > 0 then
 				api.markAsRead(ticketId, function()
-					M.tickets[i].unread_count = 0
+					data.tickets[i].unread_count = 0
 				end)
 			end
-			M.tickets[i].unread_count = 0
-			M.render(M.tickets)
+			data.tickets[i].unread_count = 0
+			M.render(data.tickets)
 		end
 	end
 end
 
 M.setup = function()
-	if not M.keymaps_setup then
+	if not data.keymaps_setup then
 		keymaps.setup_tickets_list_keymaps()
-		M.keymaps_setup = true
+		data.keymaps_setup = true
 	end
 	api.get("/tickets?per_page=1000", function(response)
 		M.render(response.tickets)
-		M.tickets = response.tickets
+		data.tickets = response.tickets
 	end)
 end
 
