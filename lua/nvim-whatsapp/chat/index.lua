@@ -4,15 +4,10 @@ local api = require("nvim-whatsapp.api")
 local navigation = require("nvim-whatsapp.navigation")
 local keymaps = require("nvim-whatsapp.keymaps")
 local chat_util = require("nvim-whatsapp.chat.util")
-
--- Import messages module avoiding circular dependencies
-local messages = require("nvim-whatsapp.chat.messages")
+local data = require("nvim-whatsapp.data")
+require("nvim-whatsapp.chat.messages")
 
 local M = {}
-
-M.ticket_id = nil
-M.messages = {}
-M.selected_message_to_reply = nil
 
 M.setup = function()
 	keymaps.setup_chat_keymaps()
@@ -43,6 +38,14 @@ M.render = function(messages)
 end
 
 M.load_chat = function(ticket_id)
+	for _, conversation in ipairs(data.conversations) do
+		if tostring(conversation.ticket_id) == tostring(ticket_id) then
+			chat_ui.clear_chat()
+			M.render(conversation.messages)
+			break
+		end
+	end
+
 	vim.schedule(function()
 		-- Focus chat input
 		navigation.FocusMessageInput()
@@ -55,8 +58,9 @@ M.load_chat = function(ticket_id)
 
 		api.get("/messages?page=1&per_page=1000&ticket_id=" .. ticket_id, function(response)
 			chat_ui.clear_chat()
-			M.ticket_id = ticket_id
-			M.messages = response.messages
+			data.ticket_id = ticket_id
+			data.messages = response.messages
+			data.set_local_conversation(ticket_id, response.messages)
 			M.render(response.messages)
 		end)
 	end)
